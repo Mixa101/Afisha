@@ -4,12 +4,19 @@ from .models import Movie, Review, Director
 class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = ['id', 'title', 'director']
+        fields = ['id', 'title', 'director_', 'duration']
         
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['text', 'movie']
+        fields = ['text', 'movie', 'stars']
+    
+    # в случае вывода исключаем stars
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.pop('stars', None)
+        return data
+    
         
 
 class DirectorSerializer(serializers.ModelSerializer):

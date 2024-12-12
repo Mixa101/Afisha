@@ -29,6 +29,9 @@ class Movie(models.Model):
     
     def __str__(self):
         return self.title
+    @property
+    def director_(self):
+        return self.director.name
     
     # FOR REVIEWS LIST
     @property
