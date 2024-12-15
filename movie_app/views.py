@@ -4,7 +4,6 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework import status
 from .serializers import *
-from datetime import timedelta
 
 
 # views for get all models objects in one JSON
@@ -17,19 +16,11 @@ class MoviesList(APIView):
         return Response(serializer)
     
     def post(self, request):
-        # здесь попробовал создание обьекта без использования сериализатора
-        # слишком много надо исправлять и смотреть
-        new_movie = request.data
-        hours, minutes, seconds = map(int, new_movie['duration'].split(':'))
-        duration = timedelta(hours=hours, minutes=minutes, seconds=seconds)
-        
-        Movie.objects.create(
-            title =new_movie['title'],
-            description = new_movie['description'],
-            duration = duration,
-            director_id = new_movie['director_id']
-        ).save()
-        return Response(data={"succes":"succesfully created"}, status=status.HTTP_201_CREATED)
+        new_movie = MovieDetailSerializer(data=request.data)
+        if new_movie.is_valid():
+            new_movie.save()
+            return Response(new_movie.data, status=status.HTTP_201_CREATED)
+        return Response(new_movie.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # THIS FOR LIST OF REVIEWS
@@ -41,12 +32,12 @@ class ReviewsList(APIView):
     
     def post(self, request):
         # Легче все сделать через сериализатор
-        new_review = ReviewSerializer(data=request.data)
+        new_review = ReviewValidateSerializer(data=request.data)
         
         if new_review.is_valid():
             new_review.save()
             return Response(data={"succesfuly create Review: good"}, status=status.HTTP_201_CREATED)
-        return Response(data={"error to create": "error"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(new_review.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
 # THIS FOR LIST OF DIRECTORS
@@ -57,13 +48,12 @@ class DirectorsList(APIView):
         return Response(serializer)
     
     def post(self, request):
-        new_director = DirectorSerializer(data=request.data)
+        new_director = DirectorValidateSerializer(data=request.data)
         
         if new_director.is_valid():
             new_director.save()
             return Response(data={"succesfuly create director": f"{new_director.data['name']}"}, status=status.HTTP_201_CREATED)
-        else:
-            return Response(data={"Error to create director": "error!"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(new_director.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # THIS FOR DETAIL OF MOVIE
@@ -113,7 +103,7 @@ class ReviewDetail(APIView):
     
     def put(self, request, pk):
         review = self.get_object(pk)
-        serializer = ReviewDetailSerializer(review, data=request.data)
+        serializer = ReviewValidateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -141,7 +131,7 @@ class DirectorDetail(APIView):
             return Response(data=director, status=status.HTTP_404_NOT_FOUND)
     def put(self, request, pk):
         director = self.get_object(pk)
-        serializer = DirectorDetailSerializer(director, data=request.data)
+        serializer = DirectorValidateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
