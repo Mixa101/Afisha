@@ -4,5 +4,6 @@ from movie_app.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('movie_app.urls')),
+    path('api/v1/products/', include('movie_app.urls')),
+    path('api/v1/users/', include('users.urls')),
 ]
