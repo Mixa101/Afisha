@@ -71,15 +71,8 @@ class DirectorListSerializer(serializers.ModelSerializer):
 
 
 # VALIDATORS
-class ReviewValidateSerializer(serializers.Serializer):
-    text = serializers.CharField(min_length=10)
-    movie = serializers.IntegerField(min_value=1)
-    stars = serializers.IntegerField(min_value=1)
-    
-    def validate_movie(self, value):
-        if not Movie.objects.filter(id=value):
-            raise serializers.ValidationError("Фильм не найден")
-        return value
-
-class DirectorValidateSerializer(serializers.Serializer):
+class DirectorValidateSerializer(DirectorSerializer):
+    class Meta:
+        model = Director
+        fields = '__all__'
     name = serializers.CharField(min_length=5)
